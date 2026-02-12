@@ -38,8 +38,10 @@ body {
 .tabs {
     display: flex;
     gap: 6px;
+    align-items: center;
 }
 
+/* Normal tab */
 .tab {
     display: flex;
     align-items: center;
@@ -57,6 +59,7 @@ body {
     color: white;
 }
 
+/* Close button */
 .close-btn {
     font-size: 13px;
     opacity: 0.6;
@@ -65,6 +68,22 @@ body {
 
 .close-btn:hover {
     opacity: 1;
+}
+
+/* Add tab button */
+.add-tab {
+    padding: 6px 12px;
+    font-size: 18px;
+    background: #1c212b;
+    color: #aaa;
+    border-radius: 6px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.add-tab:hover {
+    background: #2a2f3a;
+    color: white;
 }
 
 /* Context menu */
@@ -97,7 +116,7 @@ body {
     z-index: 1;
 }
 
-/* Make Monaco transparent */
+/* Transparent Monaco */
 .monaco-editor,
 .monaco-editor-background,
 .monaco-editor .margin {
@@ -128,6 +147,7 @@ let editor;
 let models = {};
 let activeTab = null;
 let contextTarget = null;
+let tabCounter = 1;
 
 require(["vs/editor/editor.main"], function () {
 
@@ -154,11 +174,14 @@ require(["vs/editor/editor.main"], function () {
 });
 
 function createTab(name) {
+
+    tabCounter++;
+
     const model = monaco.editor.createModel("", "lua");
     models[name] = model;
 
     const tab = document.createElement("div");
-    tab.className = "tab active";
+    tab.className = "tab";
     tab.innerHTML = `<span class="title">${name}</span><span class="close-btn">✕</span>`;
 
     tab.onclick = () => switchTab(name);
@@ -175,7 +198,24 @@ function createTab(name) {
     };
 
     document.getElementById("tabs").appendChild(tab);
+
+    refreshAddButton();
     switchTab(name);
+}
+
+function refreshAddButton() {
+    const tabsContainer = document.getElementById("tabs");
+    const existingAdd = document.querySelector(".add-tab");
+    if (existingAdd) existingAdd.remove();
+
+    const addBtn = document.createElement("div");
+    addBtn.className = "add-tab";
+    addBtn.innerText = "+";
+    addBtn.onclick = () => {
+        createTab(`untitled${tabCounter}.lua`);
+    };
+
+    tabsContainer.appendChild(addBtn);
 }
 
 function switchTab(name) {
@@ -208,6 +248,8 @@ function removeTab(name) {
     } else {
         editor.setModel(null);
     }
+
+    refreshAddButton();
 }
 
 function renameTab() {
