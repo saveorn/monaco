@@ -1,201 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Tabbed Code Editor</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Custom Monaco</title>
 
 <style>
-body {
-    margin: 0;
-    background: #0b0b0b;
-    font-family: Consolas, Monaco, "Courier New", monospace;
-    height: 100vh;
-}
+    body {
+        margin: 0;
+        background: #0f1117;
+        font-family: Consolas, monospace;
+        overflow: hidden;
+    }
 
-.editor {
-    width: 96vw;
-    height: 92vh;
-    margin: 2vh auto;
-    background: #0f0f0f;
-    border-radius: 10px;
-    box-shadow: 0 0 30px rgba(0,0,0,0.9);
-    display: flex;
-    flex-direction: column;
-}
+    /* Top bar */
+    .topbar {
+        height: 45px;
+        background: #161a22;
+        display: flex;
+        align-items: center;
+        padding: 0 15px;
+        border-bottom: 1px solid #222;
+    }
 
-/* Tabs bar */
-.tabs {
-    display: flex;
-    align-items: center;
-    background: #0f0f0f;
-    padding: 8px;
-}
+    /* Tabs */
+    .tabs {
+        display: flex;
+        gap: 5px;
+    }
 
-/* Tabs */
-.tab {
-    display: flex;
-    align-items: center;
-    background: #2a1a1a;
-    color: #e6d6d6;
-    padding: 6px 14px;
-    border-radius: 6px;
-    margin-right: 8px;
-    cursor: pointer;
-    font-size: 13px;
-    border: 1px solid #3b2323;
-    font-family: "Segoe UI", Arial, sans-serif;
-}
+    .tab {
+        padding: 8px 15px;
+        background: #1c212b;
+        color: #ccc;
+        border-radius: 6px 6px 0 0;
+        font-size: 14px;
+        cursor: pointer;
+    }
 
-.tab.active {
-    background: #3a1f1f;
-    border-color: #5a2a2a;
-    color: #ffffff;
-}
+    .tab.active {
+        background: #0f1117;
+        color: #fff;
+    }
 
-/* Close button */
-.tab span {
-    margin-left: 8px;
-    color: #cfa3a3;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.tab span:hover {
-    color: #ff6b6b;
-}
-
-/* + button */
-.add-tab {
-    margin-left: auto;
-    background: transparent;
-    color: #ccc;
-    border: none;
-    padding: 6px 10px;
-    cursor: pointer;
-    font-size: 18px;
-    font-family: "Segoe UI", Arial, sans-serif;
-}
-
-.add-tab:hover {
-    color: #ffffff;
-}
-
-/* Editor body */
-.editor-body {
-    flex: 1;
-    display: flex;
-    overflow: hidden;
-}
-
-/* Fixed line numbers */
-.line-numbers {
-    width: 40px;
-    background: #0d0d0d;
-    color: #555;
-    padding: 15px 6px;
-    text-align: right;
-    user-select: none;
-    line-height: 1.6;
-    overflow: hidden;
-    box-sizing: border-box;
-}
-
-textarea {
-    flex: 1;
-    background: transparent;
-    color: #d4d4d4;
-    border: none;
-    outline: none;
-    resize: none;
-    padding: 15px;
-    font-family: Consolas, Monaco, "Courier New", monospace;
-    font-size: 14px;
-    line-height: 1.6;
-    caret-color: #ffffff;
-}
+    /* Editor container */
+    #editor {
+        width: 100%;
+        height: calc(100vh - 46px);
+    }
 </style>
 </head>
-
 <body>
 
-<div class="editor">
-
-    <div class="tabs" id="tabs">
-        <div class="tab active" onclick="switchTab(0)">
-            Untitled 1 <span onclick="closeTab(event, 0)">×</span>
-        </div>
-        <div class="add-tab" onclick="addTab()">+</div>
+<div class="topbar">
+    <div class="tabs">
+        <div class="tab active">untitled1.lua</div>
+        <div class="tab">untitled2.lua</div>
     </div>
-
-    <div class="editor-body">
-        <div class="line-numbers" id="lines">1</div>
-        <textarea id="code"></textarea>
-    </div>
-
 </div>
 
+<div id="editor"></div>
+
+<!-- Monaco Loader -->
+<script src="https://unpkg.com/monaco-editor@0.45.0/min/vs/loader.js"></script>
 <script>
-let tabs = [""];   // ← start EMPTY
-
-let currentTab = 0;
-
-const textarea = document.getElementById("code");
-const lines = document.getElementById("lines");
-const tabsDiv = document.getElementById("tabs");
-
-textarea.value = "";
-updateLines();
-
-function updateLines() {
-    const count = textarea.value.split("\n").length || 1;
-    lines.innerHTML = Array.from({ length: count }, (_, i) => i + 1).join("<br>");
-}
-
-textarea.addEventListener("input", () => {
-    tabs[currentTab] = textarea.value;
-    updateLines();
-});
-
-textarea.addEventListener("scroll", () => {
-    lines.scrollTop = textarea.scrollTop;
-});
-
-function switchTab(index) {
-    tabs[currentTab] = textarea.value;
-    currentTab = index;
-    textarea.value = tabs[index] || "";
-    updateLines();
-
-    document.querySelectorAll(".tab").forEach((t, i) => {
-        t.classList.toggle("active", i === index);
+    require.config({ paths: { vs: 'https://unpkg.com/monaco-editor@0.45.0/min/vs' }});
+    require(["vs/editor/editor.main"], function () {
+        monaco.editor.create(document.getElementById("editor"), {
+            value: "",
+            language: "lua",
+            theme: "vs-dark",
+            fontSize: 14,
+            minimap: { enabled: false },
+            smoothScrolling: true,
+            automaticLayout: true
+        });
     });
-}
-
-function addTab() {
-    const index = tabs.length;
-    tabs.push("");
-
-    const tab = document.createElement("div");
-    tab.className = "tab";
-    tab.innerHTML = `Untitled ${index + 1} <span>×</span>`;
-    tab.onclick = () => switchTab(index);
-
-    tab.querySelector("span").onclick = (e) => closeTab(e, index);
-
-    tabsDiv.insertBefore(tab, document.querySelector(".add-tab"));
-    switchTab(index);
-}
-
-function closeTab(e, index) {
-    e.stopPropagation();
-    if (tabs.length === 1) return;
-
-    tabs.splice(index, 1);
-    tabsDiv.removeChild(tabsDiv.children[index]);
-
-    if (currentTab >= tabs.length) currentTab = tabs.length - 1;
-    switchTab(currentTab);
-}
 </script>
 
 </body>
