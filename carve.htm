@@ -1,81 +1,220 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Custom Monaco</title>
+<meta charset="UTF-8">
+<title>Custom Monaco UI</title>
 
 <style>
     body {
         margin: 0;
-        background: #0f1117;
-        font-family: Consolas, monospace;
         overflow: hidden;
+        font-family: Consolas, monospace;
+        background: #0f1117;
+    }
+
+    /* Background image layer */
+    .background {
+        position: fixed;
+        inset: 0;
+        background: url("https://i.pinimg.com/1200x/7c/85/af/7c85af6d58f6dc7e7e837ee8abaf6656.jpg") center center / cover no-repeat;
+        opacity: 0.08; /* adjust for subtle effect */
+        z-index: 0;
     }
 
     /* Top bar */
     .topbar {
+        position: relative;
         height: 45px;
         background: #161a22;
         display: flex;
         align-items: center;
-        padding: 0 15px;
+        padding: 0 10px;
         border-bottom: 1px solid #222;
+        z-index: 2;
     }
 
     /* Tabs */
     .tabs {
         display: flex;
-        gap: 5px;
+        gap: 6px;
     }
 
     .tab {
-        padding: 8px 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 14px;
         background: #1c212b;
-        color: #ccc;
+        color: #aaa;
         border-radius: 6px 6px 0 0;
-        font-size: 14px;
         cursor: pointer;
+        user-select: none;
     }
 
     .tab.active {
         background: #0f1117;
-        color: #fff;
+        color: white;
     }
 
-    /* Editor container */
+    .close-btn {
+        font-size: 13px;
+        opacity: 0.6;
+    }
+
+    .close-btn:hover {
+        opacity: 1;
+    }
+
+    /* Context menu */
+    .context-menu {
+        position: absolute;
+        background: #1c212b;
+        border: 1px solid #333;
+        border-radius: 6px;
+        padding: 6px 0;
+        display: none;
+        z-index: 10;
+        width: 140px;
+    }
+
+    .context-menu div {
+        padding: 8px 12px;
+        cursor: pointer;
+        color: #ccc;
+    }
+
+    .context-menu div:hover {
+        background: #2a2f3a;
+    }
+
+    /* Editor */
     #editor {
+        position: relative;
         width: 100%;
         height: calc(100vh - 46px);
+        z-index: 1;
     }
 </style>
 </head>
 <body>
 
+<div class="background"></div>
+
 <div class="topbar">
-    <div class="tabs">
-        <div class="tab active">untitled1.lua</div>
-        <div class="tab">untitled2.lua</div>
-    </div>
+    <div class="tabs" id="tabs"></div>
 </div>
 
 <div id="editor"></div>
+<div class="context-menu" id="contextMenu">
+    <div onclick="renameTab()">Rename</div>
+    <div onclick="closeTab()">Close</div>
+</div>
 
-<!-- Monaco Loader -->
 <script src="https://unpkg.com/monaco-editor@0.45.0/min/vs/loader.js"></script>
 <script>
-    require.config({ paths: { vs: 'https://unpkg.com/monaco-editor@0.45.0/min/vs' }});
-    require(["vs/editor/editor.main"], function () {
-        monaco.editor.create(document.getElementById("editor"), {
-            value: "",
-            language: "lua",
-            theme: "vs-dark",
-            fontSize: 14,
-            minimap: { enabled: false },
-            smoothScrolling: true,
-            automaticLayout: true
-        });
+require.config({ paths: { vs: 'https://unpkg.com/monaco-editor@0.45.0/min/vs' }});
+
+let editor;
+let models = {};
+let activeTab = null;
+let contextTarget = null;
+
+require(["vs/editor/editor.main"], function () {
+    editor = monaco.editor.create(document.getElementById("editor"), {
+        value: "",
+        language: "lua",
+        theme: "vs-dark",
+        fontSize: 14,
+        minimap: { enabled: false },
+        automaticLayout: true
     });
+
+    createTab("untitled1.lua");
+});
+
+function createTab(name) {
+    const model = monaco.editor.createModel("", "lua");
+    models[name] = model;
+
+    const tab = document.createElement("div");
+    tab.className = "tab active";
+    tab.innerHTML = `<span class="title">${name}</span> <span class="close-btn">✕</span>`;
+    
+    tab.onclick = () => switchTab(name);
+    tab.querySelector(".close-btn").onclick = (e) => {
+        e.stopPropagation();
+        removeTab(name);
+    };
+
+    tab.oncontextmenu = (e) => {
+        e.preventDefault();
+        contextTarget = name;
+        showContextMenu(e.pageX, e.pageY);
+    };
+
+    document.getElementById("tabs").appendChild(tab);
+
+    switchTab(name);
+}
+
+function switchTab(name) {
+    activeTab = name;
+    editor.setModel(models[name]);
+
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    [...document.querySelectorAll(".tab")].forEach(t => {
+        if (t.innerText.includes(name)) t.classList.add("active");
+    });
+}
+
+function removeTab(name) {
+    if (!models[name]) return;
+
+    models[name].dispose();
+    delete models[name];
+
+    document.querySelectorAll(".tab").forEach(t => {
+        if (t.innerText.includes(name)) t.remove();
+    });
+
+    const remaining = Object.keys(models);
+    if (remaining.length > 0) switchTab(remaining[0]);
+}
+
+function renameTab() {
+    const newName = prompt("Rename file:", contextTarget);
+    if (!newName || models[newName]) return;
+
+    models[newName] = models[contextTarget];
+    delete models[contextTarget];
+
+    document.querySelectorAll(".tab").forEach(t => {
+        if (t.innerText.includes(contextTarget)) {
+            t.querySelector(".title").innerText = newName;
+        }
+    });
+
+    activeTab = newName;
+    hideContextMenu();
+}
+
+function closeTab() {
+    removeTab(contextTarget);
+    hideContextMenu();
+}
+
+function showContextMenu(x, y) {
+    const menu = document.getElementById("contextMenu");
+    menu.style.left = x + "px";
+    menu.style.top = y + "px";
+    menu.style.display = "block";
+}
+
+function hideContextMenu() {
+    document.getElementById("contextMenu").style.display = "none";
+}
+
+document.addEventListener("click", hideContextMenu);
 </script>
 
 </body>
