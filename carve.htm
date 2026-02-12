@@ -5,95 +5,104 @@
 <title>Custom Monaco UI</title>
 
 <style>
-    body {
-        margin: 0;
-        overflow: hidden;
-        font-family: Consolas, monospace;
-        background: #0f1117;
-    }
+body {
+    margin: 0;
+    overflow: hidden;
+    font-family: Consolas, monospace;
+    background: #0f1117;
+}
 
-    /* Background image layer */
-    .background {
-        position: fixed;
-        inset: 0;
-        background: url("https://i.pinimg.com/1200x/7c/85/af/7c85af6d58f6dc7e7e837ee8abaf6656.jpg") center center / cover no-repeat;
-        opacity: 0.08; /* adjust for subtle effect */
-        z-index: 0;
-    }
+/* Background image */
+.background {
+    position: fixed;
+    inset: 0;
+    background: url("https://i.pinimg.com/1200x/7c/85/af/7c85af6d58f6dc7e7e837ee8abaf6656.jpg") center center / cover no-repeat;
+    opacity: 0.06;
+    filter: blur(4px);
+    z-index: 0;
+}
 
-    /* Top bar */
-    .topbar {
-        position: relative;
-        height: 45px;
-        background: #161a22;
-        display: flex;
-        align-items: center;
-        padding: 0 10px;
-        border-bottom: 1px solid #222;
-        z-index: 2;
-    }
+/* Top bar */
+.topbar {
+    position: relative;
+    height: 45px;
+    background: #161a22;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    border-bottom: 1px solid #222;
+    z-index: 2;
+}
 
-    /* Tabs */
-    .tabs {
-        display: flex;
-        gap: 6px;
-    }
+/* Tabs */
+.tabs {
+    display: flex;
+    gap: 6px;
+}
 
-    .tab {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 7px 14px;
-        background: #1c212b;
-        color: #aaa;
-        border-radius: 6px 6px 0 0;
-        cursor: pointer;
-        user-select: none;
-    }
+.tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    background: #1c212b;
+    color: #aaa;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    user-select: none;
+}
 
-    .tab.active {
-        background: #0f1117;
-        color: white;
-    }
+.tab.active {
+    background: #0f1117;
+    color: white;
+}
 
-    .close-btn {
-        font-size: 13px;
-        opacity: 0.6;
-    }
+.close-btn {
+    font-size: 13px;
+    opacity: 0.6;
+    cursor: pointer;
+}
 
-    .close-btn:hover {
-        opacity: 1;
-    }
+.close-btn:hover {
+    opacity: 1;
+}
 
-    /* Context menu */
-    .context-menu {
-        position: absolute;
-        background: #1c212b;
-        border: 1px solid #333;
-        border-radius: 6px;
-        padding: 6px 0;
-        display: none;
-        z-index: 10;
-        width: 140px;
-    }
+/* Context menu */
+.context-menu {
+    position: absolute;
+    background: #1c212b;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 6px 0;
+    display: none;
+    z-index: 10;
+    width: 140px;
+}
 
-    .context-menu div {
-        padding: 8px 12px;
-        cursor: pointer;
-        color: #ccc;
-    }
+.context-menu div {
+    padding: 8px 12px;
+    cursor: pointer;
+    color: #ccc;
+}
 
-    .context-menu div:hover {
-        background: #2a2f3a;
-    }
+.context-menu div:hover {
+    background: #2a2f3a;
+}
 
-    /* Editor */
-    #editor {
-        position: relative;
-        width: 100%;
-        height: calc(100vh - 46px);
-        z-index: 1;
-    }
+/* Editor */
+#editor {
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 46px);
+    z-index: 1;
+}
+
+/* Make Monaco transparent */
+.monaco-editor,
+.monaco-editor-background,
+.monaco-editor .margin {
+    background: transparent !important;
+}
 </style>
 </head>
 <body>
@@ -105,6 +114,7 @@
 </div>
 
 <div id="editor"></div>
+
 <div class="context-menu" id="contextMenu">
     <div onclick="renameTab()">Rename</div>
     <div onclick="closeTab()">Close</div>
@@ -120,10 +130,21 @@ let activeTab = null;
 let contextTarget = null;
 
 require(["vs/editor/editor.main"], function () {
+
+    monaco.editor.defineTheme("transparent-dark", {
+        base: "vs-dark",
+        inherit: true,
+        rules: [],
+        colors: {
+            "editor.background": "#00000000",
+            "editorGutter.background": "#00000000"
+        }
+    });
+
     editor = monaco.editor.create(document.getElementById("editor"), {
         value: "",
         language: "lua",
-        theme: "vs-dark",
+        theme: "transparent-dark",
         fontSize: 14,
         minimap: { enabled: false },
         automaticLayout: true
@@ -138,9 +159,10 @@ function createTab(name) {
 
     const tab = document.createElement("div");
     tab.className = "tab active";
-    tab.innerHTML = `<span class="title">${name}</span> <span class="close-btn">✕</span>`;
-    
+    tab.innerHTML = `<span class="title">${name}</span><span class="close-btn">✕</span>`;
+
     tab.onclick = () => switchTab(name);
+
     tab.querySelector(".close-btn").onclick = (e) => {
         e.stopPropagation();
         removeTab(name);
@@ -153,7 +175,6 @@ function createTab(name) {
     };
 
     document.getElementById("tabs").appendChild(tab);
-
     switchTab(name);
 }
 
@@ -162,8 +183,10 @@ function switchTab(name) {
     editor.setModel(models[name]);
 
     document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    [...document.querySelectorAll(".tab")].forEach(t => {
-        if (t.innerText.includes(name)) t.classList.add("active");
+    document.querySelectorAll(".tab").forEach(t => {
+        if (t.querySelector(".title").innerText === name) {
+            t.classList.add("active");
+        }
     });
 }
 
@@ -174,11 +197,17 @@ function removeTab(name) {
     delete models[name];
 
     document.querySelectorAll(".tab").forEach(t => {
-        if (t.innerText.includes(name)) t.remove();
+        if (t.querySelector(".title").innerText === name) {
+            t.remove();
+        }
     });
 
     const remaining = Object.keys(models);
-    if (remaining.length > 0) switchTab(remaining[0]);
+    if (remaining.length > 0) {
+        switchTab(remaining[0]);
+    } else {
+        editor.setModel(null);
+    }
 }
 
 function renameTab() {
@@ -189,7 +218,7 @@ function renameTab() {
     delete models[contextTarget];
 
     document.querySelectorAll(".tab").forEach(t => {
-        if (t.innerText.includes(contextTarget)) {
+        if (t.querySelector(".title").innerText === contextTarget) {
             t.querySelector(".title").innerText = newName;
         }
     });
@@ -219,4 +248,3 @@ document.addEventListener("click", hideContextMenu);
 
 </body>
 </html>
-
