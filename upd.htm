@@ -67,6 +67,15 @@
         .header {
             padding: 15px 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
         }
 
         .refresh-btn {
@@ -112,6 +121,16 @@
             top: 50%;
             transform: translateY(-50%);
             color: #666;
+            width: 16px;
+            height: 16px;
+            filter: brightness(0) invert(1);
+            opacity: 0.4;
+        }
+
+        .search-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
 
         .section {
@@ -154,6 +173,17 @@
         .file-item .icon {
             font-size: 14px;
             color: #888;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .file-item .icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
 
         .main-content {
@@ -202,6 +232,13 @@
 
         .tab-close:hover {
             opacity: 1;
+        }
+
+        .tab-icon {
+            width: 16px;
+            height: 16px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
         }
 
         .new-tab-btn {
@@ -308,40 +345,27 @@
     </style>
 </head>
 <body>
-    <div class="version">0.7.8</div>
-    
+
     <div class="container">
         <div class="sidebar">
             <div class="header">
-                <button class="refresh-btn">⟳</button>
+                <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471631880855097415/logo_enhanced.png?ex=698fa37d&is=698e51fd&hm=bf023375b63dd63a5b311bb20653fc86e5b03ab4bfc3a48f1863691d9256aedf&" alt="Logo" class="logo">
             </div>
             
             <div class="search-box">
                 <input type="text" placeholder="Search Explorer..">
-                <span class="search-icon">🔍</span>
+                <span class="search-icon">
+                    <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471633811686293515/magnifier.png?ex=698fa54a&is=698e53ca&hm=87c21a0bcd222046e28aed7431c98f13bcf86ee53e3aea80641f081b48a6d6bc&" alt="search">
+                </span>
             </div>
 
             <div class="section">
                 <div class="section-title">Favourites</div>
-                <div class="file-item favourite">
-                    <span class="icon">⭐</span>
-                    <span>Dark Dex.lua</span>
-                </div>
-                <div class="file-item favourite">
-                    <span class="icon">⭐</span>
-                    <span>Hydroxide.lua</span>
-                </div>
-            </div>
-
-            <div class="section">
-                <div class="section-title">Fun Scripts</div>
-                <div class="file-item">
-                    <span class="icon">📄</span>
+                <div class="file-item favourite" id="infiniteYield">
+                    <span class="icon">
+                        <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471634197046235381/star.png?ex=698fa5a6&is=698e5426&hm=3525c049d90a57c60689f629d5ed38a41fcfd6b65735309db14e913468ccbb62&" alt="star">
+                    </span>
                     <span>Infinite Yield FE.lua</span>
-                </div>
-                <div class="file-item">
-                    <span class="icon">📄</span>
-                    <span>Sirius.lua</span>
                 </div>
             </div>
         </div>
@@ -349,7 +373,7 @@
         <div class="main-content">
             <div class="tabs">
                 <div class="tab active" data-tab-id="1">
-                    <span>📄</span>
+                    <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471633495490297878/code.png?ex=698fa4fe&is=698e537e&hm=165cb6b526e97b95d186d8578f30a21a1f8bdd005454a2a90c9c45ffcbddc87a&" class="tab-icon" alt="code">
                     <span class="tab-name">Tab 1</span>
                     <span class="tab-close">×</span>
                 </div>
@@ -416,7 +440,7 @@
                 newTab.className = 'tab';
                 newTab.dataset.tabId = tabCounter;
                 newTab.innerHTML = `
-                    <span>📄</span>
+                    <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471633495490297878/code.png?ex=698fa4fe&is=698e537e&hm=165cb6b526e97b95d186d8578f30a21a1f8bdd005454a2a90c9c45ffcbddc87a&" class="tab-icon" alt="code">
                     <span class="tab-name">Tab ${tabCounter}</span>
                     <span class="tab-close">×</span>
                 `;
@@ -497,6 +521,32 @@
             // Initialize existing tabs
             document.querySelectorAll('.tab').forEach(tab => {
                 addTabEventListeners(tab);
+            });
+
+            // Infinite Yield FE.lua click handler
+            document.getElementById('infiniteYield').addEventListener('click', () => {
+                // Create new tab
+                const newTab = document.createElement('div');
+                newTab.className = 'tab active';
+                newTab.dataset.tabId = tabCounter;
+                newTab.innerHTML = `
+                    <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471633495490297878/code.png?ex=698fa4fe&is=698e537e&hm=165cb6b526e97b95d186d8578f30a21a1f8bdd005454a2a90c9c45ffcbddc87a&" class="tab-icon" alt="code">
+                    <span class="tab-name">Infinite Yield FE</span>
+                    <span class="tab-close">×</span>
+                `;
+                
+                // Deactivate all tabs
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                
+                // Insert before the + button
+                tabsContainer.insertBefore(newTab, newTabBtn);
+                tabCounter++;
+                
+                // Add event listeners to new tab
+                addTabEventListeners(newTab);
+                
+                // Set editor content
+                editor.setValue("loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()");
             });
         });
     </script>
