@@ -23,13 +23,69 @@
             display: flex;
             height: 100vh;
             position: relative;
+            flex-direction: column;
+        }
+
+        /* Window Controls Bar */
+        .window-controls {
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(20px);
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            z-index: 100;
+            -webkit-app-region: drag;
+        }
+
+        .window-controls-buttons {
+            display: flex;
+            gap: 10px;
+            -webkit-app-region: no-drag;
+        }
+
+        .window-control-btn {
+            width: 46px;
+            height: 32px;
+            background: transparent;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+        }
+
+        .window-control-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .window-control-btn.close:hover {
+            background: #e81123;
+        }
+
+        .window-control-btn svg {
+            width: 10px;
+            height: 10px;
+            fill: currentColor;
+        }
+
+        .main-wrapper {
+            display: flex;
+            flex: 1;
+            position: relative;
         }
 
         /* ========================================
            BACKGROUND IMAGE CONFIGURATION
            Replace the URL below with your image
            ======================================== */
-        .container::before {
+        .main-wrapper::before {
             content: '';
             position: absolute;
             top: 0;
@@ -48,7 +104,7 @@
 
         /* Fallback if image doesn't load */
         @supports not (backdrop-filter: blur(20px)) {
-            .container::before {
+            .main-wrapper::before {
                 opacity: 0.4;
             }
         }
@@ -76,21 +132,6 @@
             width: 40px;
             height: 40px;
             object-fit: contain;
-        }
-
-        .refresh-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: none;
-            color: #888;
-            padding: 8px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .refresh-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
         }
 
         .search-box {
@@ -297,46 +338,72 @@
             border-top: 1px solid rgba(255, 255, 255, 0.05);
             padding: 12px 20px;
             display: flex;
-            gap: 15px;
-            min-height: 50px;
+            gap: 12px;
+            min-height: 60px;
+            align-items: center;
         }
 
         .footer button {
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: #ccc;
-            padding: 8px 20px;
+            padding: 10px 24px;
             border-radius: 6px;
             cursor: pointer;
             font-size: 13px;
+            font-weight: 500;
             transition: all 0.2s;
             display: flex;
             align-items: center;
             gap: 8px;
+            min-width: 100px;
+            justify-content: center;
         }
 
         .footer button:hover {
             background: rgba(255, 255, 255, 0.15);
             border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .footer button:active {
+            transform: translateY(0);
         }
 
         .footer button.execute {
-            background: rgba(100, 150, 255, 0.2);
-            border-color: rgba(100, 150, 255, 0.3);
+            background: linear-gradient(135deg, rgba(100, 150, 255, 0.25), rgba(80, 120, 255, 0.25));
+            border-color: rgba(100, 150, 255, 0.4);
             color: #8bb4ff;
         }
 
         .footer button.execute:hover {
-            background: rgba(100, 150, 255, 0.3);
+            background: linear-gradient(135deg, rgba(100, 150, 255, 0.35), rgba(80, 120, 255, 0.35));
+            border-color: rgba(100, 150, 255, 0.5);
+            color: #a8c9ff;
         }
 
-        .version {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            color: #666;
-            font-size: 12px;
-            z-index: 10;
+        .footer button.clear {
+            background: rgba(255, 100, 100, 0.15);
+            border-color: rgba(255, 100, 100, 0.3);
+            color: #ff9999;
+        }
+
+        .footer button.clear:hover {
+            background: rgba(255, 100, 100, 0.25);
+            border-color: rgba(255, 100, 100, 0.4);
+            color: #ffb3b3;
+        }
+
+        .footer button.inject {
+            background: rgba(100, 255, 150, 0.15);
+            border-color: rgba(100, 255, 150, 0.3);
+            color: #99ffbb;
+        }
+
+        .footer button.inject:hover {
+            background: rgba(100, 255, 150, 0.25);
+            border-color: rgba(100, 255, 150, 0.4);
+            color: #b3ffcc;
         }
 
         /* Monaco Editor Customization */
@@ -347,58 +414,137 @@
         .monaco-editor .margin {
             background: transparent !important;
         }
+
+        /* Button Icons */
+        .btn-icon {
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div class="sidebar">
-            <div class="header">
-                <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471631880855097415/logo_enhanced.png?ex=698fa37d&is=698e51fd&hm=bf023375b63dd63a5b311bb20653fc86e5b03ab4bfc3a48f1863691d9256aedf&" alt="Logo" class="logo">
-            </div>
-            
-            <div class="search-box">
-                <input type="text" placeholder="Search Explorer..">
-                <span class="search-icon">
-                    <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471633811686293515/magnifier.png?ex=698fa54a&is=698e53ca&hm=87c21a0bcd222046e28aed7431c98f13bcf86ee53e3aea80641f081b48a6d6bc&" alt="search">
-                </span>
-            </div>
-
-            <div class="section">
-                <div class="section-title">Favourites</div>
-                <div class="file-item favourite" id="infiniteYield">
-                    <span class="icon">
-                        <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471634197046235381/star.png?ex=698fa5a6&is=698e5426&hm=3525c049d90a57c60689f629d5ed38a41fcfd6b65735309db14e913468ccbb62&" alt="star">
-                    </span>
-                    <span>Infinite Yield FE.lua</span>
-                </div>
+        <!-- Window Controls Bar -->
+        <div class="window-controls">
+            <div class="window-controls-buttons">
+                <button class="window-control-btn minimize" id="minimizeBtn" title="Minimize">
+                    <svg viewBox="0 0 10 1">
+                        <rect width="10" height="1"/>
+                    </svg>
+                </button>
+                <button class="window-control-btn maximize" id="maximizeBtn" title="Maximize">
+                    <svg viewBox="0 0 10 10">
+                        <rect width="9" height="9" x="0.5" y="0.5" fill="none" stroke="currentColor"/>
+                    </svg>
+                </button>
+                <button class="window-control-btn close" id="closeBtn" title="Close">
+                    <svg viewBox="0 0 10 10">
+                        <line x1="0" y1="0" x2="10" y2="10" stroke="currentColor" stroke-width="1"/>
+                        <line x1="10" y1="0" x2="0" y2="10" stroke="currentColor" stroke-width="1"/>
+                    </svg>
+                </button>
             </div>
         </div>
 
-        <div class="main-content">
-            <div class="tabs">
-                <div class="tab active" data-tab-id="1">
-                    <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471633495490297878/code.png?ex=698fa4fe&is=698e537e&hm=165cb6b526e97b95d186d8578f30a21a1f8bdd005454a2a90c9c45ffcbddc87a&" class="tab-icon" alt="code">
-                    <span class="tab-name">Tab 1</span>
-                    <span class="tab-close">×</span>
+        <div class="main-wrapper">
+            <div class="sidebar">
+                <div class="header">
+                    <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471631880855097415/logo_enhanced.png?ex=698fa37d&is=698e51fd&hm=bf023375b63dd63a5b311bb20653fc86e5b03ab4bfc3a48f1863691d9256aedf&" alt="Logo" class="logo">
                 </div>
-                <button class="new-tab-btn" id="newTabBtn">+</button>
+                
+                <div class="search-box">
+                    <input type="text" placeholder="Search Explorer..">
+                    <span class="search-icon">
+                        <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471633811686293515/magnifier.png?ex=698fa54a&is=698e53ca&hm=87c21a0bcd222046e28aed7431c98f13bcf86ee53e3aea80641f081b48a6d6bc&" alt="search">
+                    </span>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Favourites</div>
+                    <div class="file-item favourite" id="infiniteYield">
+                        <span class="icon">
+                            <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471634197046235381/star.png?ex=698fa5a6&is=698e5426&hm=3525c049d90a57c60689f629d5ed38a41fcfd6b65735309db14e913468ccbb62&" alt="star">
+                        </span>
+                        <span>Infinite Yield FE.lua</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="editor-container">
-                <div id="editor"></div>
-            </div>
+            <div class="main-content">
+                <div class="tabs">
+                    <div class="tab active" data-tab-id="1">
+                        <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471633495490297878/code.png?ex=698fa4fe&is=698e537e&hm=165cb6b526e97b95d186d8578f30a21a1f8bdd005454a2a90c9c45ffcbddc87a&" class="tab-icon" alt="code">
+                        <span class="tab-name">Tab 1</span>
+                        <span class="tab-close">×</span>
+                    </div>
+                    <button class="new-tab-btn" id="newTabBtn">+</button>
+                </div>
 
-            <div class="footer">
+                <div class="editor-container">
+                    <div id="editor"></div>
+                </div>
+
+                <div class="footer">
+                    <button class="inject" id="injectBtn">
+                        <span class="btn-icon">
+                            <svg viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                            </svg>
+                        </span>
+                        Inject
+                    </button>
+                    <button class="execute" id="executeBtn">
+                        <span class="btn-icon">
+                            <svg viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M3 2v12l10-6L3 2z"/>
+                            </svg>
+                        </span>
+                        Execute
+                    </button>
+                    <button class="clear" id="clearBtn">
+                        <span class="btn-icon">
+                            <svg viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                                <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                            </svg>
+                        </span>
+                        Clear
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
     <script>
+        // Window Controls Functionality
+        document.getElementById('minimizeBtn').addEventListener('click', () => {
+            console.log('Minimize clicked');
+        });
+
+        document.getElementById('maximizeBtn').addEventListener('click', () => {
+            console.log('Maximize/Restore clicked');
+        });
+
+        document.getElementById('closeBtn').addEventListener('click', () => {
+            console.log('Close clicked');
+            window.close();
+        });
+
         require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
         
         require(['vs/editor/editor.main'], function() {
+            // ===== TAB CONTENT STORAGE =====
+            // This object stores the content of each tab
+            const tabContents = {};
+            let currentTabId = '1';
+            let tabCounter = 2;
+
+            // Create the Monaco editor
             const editor = monaco.editor.create(document.getElementById('editor'), {
                 value: '-- put ur script here',
                 language: 'lua',
@@ -413,6 +559,9 @@
                 padding: { top: 15, bottom: 15 },
                 backgroundColor: 'transparent'
             });
+
+            // Initialize the first tab's content
+            tabContents['1'] = '-- put ur script here';
 
             // Define custom theme
             monaco.editor.defineTheme('custom-dark', {
@@ -434,26 +583,118 @@
             
             monaco.editor.setTheme('custom-dark');
 
+            // Function to save current tab content
+            function saveCurrentTabContent() {
+                tabContents[currentTabId] = editor.getValue();
+            }
+
+            // Function to load tab content
+            function loadTabContent(tabId) {
+                if (tabContents[tabId] !== undefined) {
+                    editor.setValue(tabContents[tabId]);
+                } else {
+                    editor.setValue('-- put ur script here');
+                    tabContents[tabId] = '-- put ur script here';
+                }
+            }
+
+            // Function to switch tabs
+            function switchTab(tabId) {
+                // Save current tab content before switching
+                saveCurrentTabContent();
+                
+                // Update current tab ID
+                currentTabId = tabId;
+                
+                // Load the new tab's content
+                loadTabContent(tabId);
+            }
+
+            // Function to get text from editor (for C# integration)
+            window.GetText = function() {
+                return editor.getValue();
+            };
+
+            // Function to set text in editor (for C# integration)
+            window.SetText = function(text) {
+                editor.setValue(text);
+                // Save to current tab
+                tabContents[currentTabId] = text;
+            };
+
+            // ===== BUTTON FUNCTIONALITY =====
+            
+            // INJECT BUTTON - Attach to Quorum API
+            document.getElementById('injectBtn').addEventListener('click', async () => {
+                console.log('Inject button clicked');
+                try {
+                    // For CefSharp - Uncomment and use this:
+                    await quorum.AttachAPI();
+                    
+                    console.log('API Attached successfully');
+                    alert('Injected successfully!');
+                } catch (error) {
+                    console.error('Inject failed:', error);
+                    alert('Failed to inject: ' + error);
+                }
+            });
+
+            // EXECUTE BUTTON - Execute the script
+            document.getElementById('executeBtn').addEventListener('click', async () => {
+                const script = editor.getValue();
+                console.log('Execute button clicked');
+                console.log('Script to execute:', script);
+                
+                try {
+                    // For CefSharp - Uncomment and use this:
+                    await quorum.ExecuteScript(script);
+                    
+                    console.log('Script executed successfully');
+                } catch (error) {
+                    console.error('Execution failed:', error);
+                    alert('Failed to execute: ' + error);
+                }
+            });
+
+            // CLEAR BUTTON - Clear the editor
+            document.getElementById('clearBtn').addEventListener('click', () => {
+                console.log('Clear button clicked');
+                editor.setValue('-- put ur script here');
+                // Save the cleared content to current tab
+                tabContents[currentTabId] = '-- put ur script here';
+            });
+
             // Tab management
-            let tabCounter = 2;
             const tabsContainer = document.querySelector('.tabs');
             const newTabBtn = document.getElementById('newTabBtn');
 
             // Create new tab
             newTabBtn.addEventListener('click', () => {
+                // Save current tab content before creating new tab
+                saveCurrentTabContent();
+
+                const newTabId = String(tabCounter);
                 const newTab = document.createElement('div');
                 newTab.className = 'tab';
-                newTab.dataset.tabId = tabCounter;
+                newTab.dataset.tabId = newTabId;
                 newTab.innerHTML = `
                     <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471633495490297878/code.png?ex=698fa4fe&is=698e537e&hm=165cb6b526e97b95d186d8578f30a21a1f8bdd005454a2a90c9c45ffcbddc87a&" class="tab-icon" alt="code">
                     <span class="tab-name">Tab ${tabCounter}</span>
                     <span class="tab-close">×</span>
                 `;
                 tabsContainer.insertBefore(newTab, newTabBtn);
+                
+                // Initialize new tab with default content
+                tabContents[newTabId] = '-- put ur script here';
+                
                 tabCounter++;
                 
-                // Add event listeners to new tab
                 addTabEventListeners(newTab);
+
+                // Auto-switch to the new tab
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                newTab.classList.add('active');
+                switchTab(newTabId);
             });
 
             // Add event listeners to all tabs
@@ -466,8 +707,13 @@
                     if (e.target.classList.contains('tab-close') || e.target.classList.contains('tab-name')) {
                         return;
                     }
+                    
+                    // Deactivate all tabs
                     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                     tab.classList.add('active');
+                    
+                    // Switch to this tab's content
+                    switchTab(tab.dataset.tabId);
                 });
 
                 // Rename tab on double-click
@@ -509,14 +755,21 @@
                     e.stopPropagation();
                     const allTabs = document.querySelectorAll('.tab');
                     if (allTabs.length > 1) {
+                        const tabId = tab.dataset.tabId;
                         const wasActive = tab.classList.contains('active');
+                        
+                        // Remove tab from DOM
                         tab.remove();
+                        
+                        // Delete tab content from storage
+                        delete tabContents[tabId];
                         
                         // If closed tab was active, activate the first remaining tab
                         if (wasActive) {
                             const remainingTabs = document.querySelectorAll('.tab');
                             if (remainingTabs.length > 0) {
                                 remainingTabs[0].classList.add('active');
+                                switchTab(remainingTabs[0].dataset.tabId);
                             }
                         }
                     }
@@ -530,10 +783,15 @@
 
             // Infinite Yield FE.lua click handler
             document.getElementById('infiniteYield').addEventListener('click', () => {
+                // Save current tab content
+                saveCurrentTabContent();
+
+                const newTabId = String(tabCounter);
+                
                 // Create new tab
                 const newTab = document.createElement('div');
                 newTab.className = 'tab active';
-                newTab.dataset.tabId = tabCounter;
+                newTab.dataset.tabId = newTabId;
                 newTab.innerHTML = `
                     <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471633495490297878/code.png?ex=698fa4fe&is=698e537e&hm=165cb6b526e97b95d186d8578f30a21a1f8bdd005454a2a90c9c45ffcbddc87a&" class="tab-icon" alt="code">
                     <span class="tab-name">Infinite Yield FE</span>
@@ -545,13 +803,23 @@
                 
                 // Insert before the + button
                 tabsContainer.insertBefore(newTab, newTabBtn);
+                
+                // Set the Infinite Yield script content
+                const iyScript = "loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()";
+                tabContents[newTabId] = iyScript;
+                
                 tabCounter++;
                 
-                // Add event listeners to new tab
                 addTabEventListeners(newTab);
                 
-                // Set editor content
-                editor.setValue("loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()");
+                // Switch to the new tab
+                currentTabId = newTabId;
+                editor.setValue(iyScript);
+            });
+
+            // Auto-save content as user types
+            editor.onDidChangeModelContent(() => {
+                tabContents[currentTabId] = editor.getValue();
             });
         });
     </script>
