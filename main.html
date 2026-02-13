@@ -564,7 +564,7 @@
                         <span class="btn-icon">
                             <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471631880855097415/logo_enhanced.png?ex=698fa37d&is=698e51fd&hm=bf023375b63dd63a5b311bb20653fc86e5b03ab4bfc3a48f1863691d9256aedf&" alt="logo" style="width: 16px; height: 16px; object-fit: contain;">
                         </span>
-                        Inject
+                        Attach
                     </button>
                     <button class="execute" id="executeBtn" disabled>
                         <span class="btn-icon">
@@ -610,7 +610,7 @@
                     <div class="output-content" id="outputContent">
                         <div class="output-line info">
                             <span class="output-timestamp">[00:00:00]</span>
-                            <span class="output-message">Ready - Open Roblox and click Inject</span>
+                            <span class="output-message">Ready - Open Roblox and click Attach</span>
                         </div>
                     </div>
                 </div>
@@ -674,7 +674,7 @@
             function clearOutput() {
                 const outputContent = document.getElementById('outputContent');
                 outputContent.innerHTML = '';
-                addOutputLine(isAttached ? 'Output cleared - Attached to Roblox' : 'Output cleared - Click Inject to attach', 'info');
+                addOutputLine(isAttached ? 'Output cleared - Attached to Roblox' : 'Output cleared - Click Attach to attach', 'info');
             }
 
             // Clear output button
@@ -788,21 +788,21 @@
                         <span class="btn-icon">
                             <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471631880855097415/logo_enhanced.png?ex=698fa37d&is=698e51fd&hm=bf023375b63dd63a5b311bb20653fc86e5b03ab4bfc3a48f1863691d9256aedf&" alt="logo" style="width: 16px; height: 16px; object-fit: contain;">
                         </span>
-                        Inject
+                        Attach
                     `;
                 }
             };
 
             // ===== BUTTON FUNCTIONALITY =====
             
-            // INJECT BUTTON - Attach to Quorum API
+            // ATTACH BUTTON - Attach to Quorum API
             injectBtn.addEventListener('click', async () => {
                 if (isAttached) {
                     addOutputLine('Already attached to Roblox', 'warning');
                     return;
                 }
                 
-                console.log('Inject button clicked');
+                console.log('Attach button clicked');
                 addOutputLine('Checking for Roblox...', 'info');
                 
                 try {
@@ -830,13 +830,13 @@
                     injectBtn.disabled = true;
                     
                 } catch (error) {
-                    console.error('Inject failed:', error);
+                    console.error('Attach failed:', error);
                     const errorMsg = error.message || error.toString();
                     
                     if (errorMsg.includes('Roblox') || errorMsg.includes('not found') || errorMsg.includes('not running')) {
                         addOutputLine('Roblox is not running. Please open Roblox and try again.', 'error');
                     } else {
-                        addOutputLine('Injection failed: ' + errorMsg, 'error');
+                        addOutputLine('Attachment failed: ' + errorMsg, 'error');
                     }
                 }
             });
@@ -844,7 +844,7 @@
             // EXECUTE BUTTON - Execute the script
             executeBtn.addEventListener('click', async () => {
                 if (!isAttached) {
-                    addOutputLine('Cannot execute: Not attached to Roblox. Click Inject first.', 'error');
+                    addOutputLine('Cannot execute: Not attached to Roblox. Click Attach first.', 'error');
                     return;
                 }
                 
