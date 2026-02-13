@@ -472,14 +472,19 @@
             justify-content: center;
         }
 
-        .footer button:hover {
+        .footer button:hover:not(:disabled) {
             background: rgba(255, 255, 255, 0.15);
             border-color: rgba(255, 255, 255, 0.2);
             transform: translateY(-1px);
         }
 
-        .footer button:active {
+        .footer button:active:not(:disabled) {
             transform: translateY(0);
+        }
+
+        .footer button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         /* Monaco Editor Customization */
@@ -561,7 +566,7 @@
                         </span>
                         Inject
                     </button>
-                    <button class="execute" id="executeBtn">
+                    <button class="execute" id="executeBtn" disabled>
                         <span class="btn-icon">
                             <svg viewBox="0 0 16 16" fill="currentColor">
                                 <path d="M3 2v12l10-6L3 2z"/>
@@ -605,7 +610,7 @@
                     <div class="output-content" id="outputContent">
                         <div class="output-line info">
                             <span class="output-timestamp">[00:00:00]</span>
-                            <span class="output-message">Ready - Waiting for commands...</span>
+                            <span class="output-message">Ready - Open Roblox and click Inject</span>
                         </div>
                     </div>
                 </div>
@@ -625,13 +630,17 @@
                 window.chrome.webview.hostObjects.quorum.Close();
             } catch (error) {
                 console.error('Close failed:', error);
-                alert('Failed to close: ' + error);
             }
         });
 
         require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
         
         require(['vs/editor/editor.main'], function() {
+            // ===== ATTACHMENT STATE =====
+            let isAttached = false;
+            const injectBtn = document.getElementById('injectBtn');
+            const executeBtn = document.getElementById('executeBtn');
+
             // ===== OUTPUT CONSOLE FUNCTIONS =====
             function getTimestamp() {
                 const now = new Date();
@@ -665,7 +674,7 @@
             function clearOutput() {
                 const outputContent = document.getElementById('outputContent');
                 outputContent.innerHTML = '';
-                addOutputLine('Output cleared', 'info');
+                addOutputLine(isAttached ? 'Output cleared - Attached to Roblox' : 'Output cleared - Click Inject to attach', 'info');
             }
 
             // Clear output button
@@ -757,28 +766,90 @@
                 tabContents[currentTabId] = text;
             };
 
+            // Function to set attachment state (called from C#)
+            window.SetAttached = function(attached) {
+                isAttached = attached;
+                injectBtn.disabled = false;
+                executeBtn.disabled = !attached;
+                
+                if (attached) {
+                    addOutputLine('Successfully attached to Roblox!', 'success');
+                    injectBtn.textContent = '';
+                    injectBtn.innerHTML = `
+                        <span class="btn-icon">
+                            <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471631880855097415/logo_enhanced.png?ex=698fa37d&is=698e51fd&hm=bf023375b63dd63a5b311bb20653fc86e5b03ab4bfc3a48f1863691d9256aedf&" alt="logo" style="width: 16px; height: 16px; object-fit: contain;">
+                        </span>
+                        Attached
+                    `;
+                } else {
+                    addOutputLine('Disconnected from Roblox', 'warning');
+                    injectBtn.textContent = '';
+                    injectBtn.innerHTML = `
+                        <span class="btn-icon">
+                            <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471631880855097415/logo_enhanced.png?ex=698fa37d&is=698e51fd&hm=bf023375b63dd63a5b311bb20653fc86e5b03ab4bfc3a48f1863691d9256aedf&" alt="logo" style="width: 16px; height: 16px; object-fit: contain;">
+                        </span>
+                        Inject
+                    `;
+                }
+            };
+
             // ===== BUTTON FUNCTIONALITY =====
             
             // INJECT BUTTON - Attach to Quorum API
-            document.getElementById('injectBtn').addEventListener('click', async () => {
+            injectBtn.addEventListener('click', async () => {
+                if (isAttached) {
+                    addOutputLine('Already attached to Roblox', 'warning');
+                    return;
+                }
+                
                 console.log('Inject button clicked');
-                addOutputLine('Attempting to inject...', 'info');
+                addOutputLine('Checking for Roblox...', 'info');
+                
                 try {
                     // Call the C# method through the bridge
-                    window.chrome.webview.hostObjects.quorum.AttachAPI();
-                    console.log('API Attached successfully');
-                    addOutputLine('Injection successful!', 'success');
+                    const result = window.chrome.webview.hostObjects.quorum.AttachAPI();
+                    console.log('AttachAPI result:', result);
+                    
+                    // Check if attachment was successful
+                    // The C# method should return true/false or throw an error
+                    if (result === false || result === 'false') {
+                        addOutputLine('Roblox is not running. Please open Roblox and try again.', 'error');
+                        return;
+                    }
+                    
+                    // If we get here, attachment was successful
+                    isAttached = true;
+                    executeBtn.disabled = false;
+                    addOutputLine('Successfully attached to Roblox!', 'success');
+                    injectBtn.innerHTML = `
+                        <span class="btn-icon">
+                            <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471631880855097415/logo_enhanced.png?ex=698fa37d&is=698e51fd&hm=bf023375b63dd63a5b311bb20653fc86e5b03ab4bfc3a48f1863691d9256aedf&" alt="logo" style="width: 16px; height: 16px; object-fit: contain;">
+                        </span>
+                        Attached
+                    `;
+                    injectBtn.disabled = true;
+                    
                 } catch (error) {
                     console.error('Inject failed:', error);
-                    addOutputLine('Injection failed: ' + error, 'error');
+                    const errorMsg = error.message || error.toString();
+                    
+                    if (errorMsg.includes('Roblox') || errorMsg.includes('not found') || errorMsg.includes('not running')) {
+                        addOutputLine('Roblox is not running. Please open Roblox and try again.', 'error');
+                    } else {
+                        addOutputLine('Injection failed: ' + errorMsg, 'error');
+                    }
                 }
             });
 
             // EXECUTE BUTTON - Execute the script
-            document.getElementById('executeBtn').addEventListener('click', async () => {
+            executeBtn.addEventListener('click', async () => {
+                if (!isAttached) {
+                    addOutputLine('Cannot execute: Not attached to Roblox. Click Inject first.', 'error');
+                    return;
+                }
+                
                 const script = editor.getValue();
                 console.log('Execute button clicked');
-                console.log('Script to execute:', script);
                 
                 if (!script || script.trim() === '' || script.trim() === '-- put ur script here') {
                     addOutputLine('Cannot execute: Script is empty', 'warning');
@@ -793,7 +864,7 @@
                     addOutputLine('Script executed successfully', 'success');
                 } catch (error) {
                     console.error('Execution failed:', error);
-                    addOutputLine('Execution failed: ' + error, 'error');
+                    addOutputLine('Execution failed: ' + error.message, 'error');
                 }
             });
 
