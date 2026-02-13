@@ -967,14 +967,14 @@
                 
                 try {
                     // Call the C# method through the bridge
-                    const result = window.chrome.webview.hostObjects.quorum.AttachAPI();
+                    const result = await window.chrome.webview.hostObjects.quorum.AttachAPI();
                     console.log('AttachAPI result:', result);
                     
                     // Check if attachment was successful
-                    // The C# method should return true/false or throw an error
-                    if (result === false || result === 'false') {
-                        addOutputLine('Roblox is not running. Please open Roblox and try again.', 'error');
-                        showNotification('Heaven', 'Roblox is not running', 'error');
+                    // The C# method should return true on success, false or throw error on failure
+                    if (result === false || result === 'false' || result === null || result === undefined || result === 0) {
+                        addOutputLine('Failed to attach. Please ensure Roblox is running.', 'error');
+                        showNotification('Heaven', 'Failed to attach to Roblox', 'error');
                         return;
                     }
                     
@@ -995,13 +995,8 @@
                     console.error('Attach failed:', error);
                     const errorMsg = error.message || error.toString();
                     
-                    if (errorMsg.includes('Roblox') || errorMsg.includes('not found') || errorMsg.includes('not running')) {
-                        addOutputLine('Roblox is not running. Please open Roblox and try again.', 'error');
-                        showNotification('Heaven', 'Roblox is not running', 'error');
-                    } else {
-                        addOutputLine('Attachment failed: ' + errorMsg, 'error');
-                        showNotification('Heaven', 'Attachment failed', 'error');
-                    }
+                    addOutputLine('Failed to attach: ' + errorMsg, 'error');
+                    showNotification('Heaven', 'Failed to attach to Roblox', 'error');
                 }
             });
 
