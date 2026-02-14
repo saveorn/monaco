@@ -33,17 +33,25 @@
             height: 32px;
             display: flex;
             align-items: center;
-            justify-content: flex-end;
+            justify-content: space-between;
             padding: 0 10px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             position: relative;
             z-index: 100;
             -webkit-app-region: drag;
+            cursor: move;
+        }
+
+        .window-title {
+            font-size: 12px;
+            color: #888;
+            user-select: none;
+            -webkit-app-region: drag;
         }
 
         .window-controls-buttons {
             display: flex;
-            gap: 10px;
+            gap: 0;
             -webkit-app-region: no-drag;
         }
 
@@ -62,6 +70,10 @@
         }
 
         .window-control-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .window-control-btn.minimize:hover {
             background: rgba(255, 255, 255, 0.1);
         }
 
@@ -625,9 +637,15 @@
 
     <div class="container">
         <!-- Window Controls Bar -->
-        <div class="window-controls">
+        <div class="window-controls" id="windowControls">
+            <div class="window-title">Heaven Executor</div>
             <div class="window-controls-buttons">
                 <button class="new-tab-btn" id="newTabBtn">+</button>
+                <button class="window-control-btn minimize" id="minimizeBtn" title="Minimize">
+                    <svg viewBox="0 0 10 10">
+                        <line x1="0" y1="5" x2="10" y2="5" stroke="currentColor" stroke-width="1"/>
+                    </svg>
+                </button>
                 <button class="window-control-btn close" id="closeBtn" title="Close">
                     <svg viewBox="0 0 10 10">
                         <line x1="0" y1="0" x2="10" y2="10" stroke="currentColor" stroke-width="1"/>
@@ -735,9 +753,90 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
     <script>
+        // ===== WINDOW DRAGGING FUNCTIONALITY =====
+        const windowControls = document.getElementById('windowControls');
+        let isDragging = false;
+        let currentX;
+        let currentY;
+        let initialX;
+        let initialY;
+        let xOffset = 0;
+        let yOffset = 0;
+
+        windowControls.addEventListener('mousedown', dragStart);
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', dragEnd);
+
+        function dragStart(e) {
+            // Only start dragging if clicking on the window controls bar itself, not the buttons
+            if (e.target.closest('.window-controls-buttons') || e.target.closest('.new-tab-btn')) {
+                return;
+            }
+
+            initialX = e.clientX - xOffset;
+            initialY = e.clientY - yOffset;
+
+            isDragging = true;
+            windowControls.style.cursor = 'grabbing';
+        }
+
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault();
+                
+                currentX = e.clientX - initialX;
+                currentY = e.clientY - initialY;
+
+                xOffset = currentX;
+                yOffset = currentY;
+
+                setTranslate(currentX, currentY, document.querySelector('.container'));
+            }
+        }
+
+        function dragEnd(e) {
+            initialX = currentX;
+            initialY = currentY;
+
+            isDragging = false;
+            windowControls.style.cursor = 'move';
+        }
+
+        function setTranslate(xPos, yPos, el) {
+            el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+        }
+
         // ===== WINDOW CONTROLS FUNCTIONALITY =====
-        // Close button functionality for WebView2
         
+        // Minimize button - hides the window
+        let isMinimized = false;
+        const container = document.querySelector('.container');
+        const minimizeBtn = document.getElementById('minimizeBtn');
+        
+        minimizeBtn.addEventListener('click', () => {
+            isMinimized = !isMinimized;
+            
+            if (isMinimized) {
+                // Minimize: hide everything except the title bar
+                container.style.height = '32px';
+                container.style.overflow = 'hidden';
+                minimizeBtn.innerHTML = `
+                    <svg viewBox="0 0 10 10">
+                        <rect x="0" y="0" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1"/>
+                    </svg>
+                `;
+            } else {
+                // Restore
+                container.style.height = '100vh';
+                container.style.overflow = 'hidden';
+                minimizeBtn.innerHTML = `
+                    <svg viewBox="0 0 10 10">
+                        <line x1="0" y1="5" x2="10" y2="5" stroke="currentColor" stroke-width="1"/>
+                    </svg>
+                `;
+            }
+        });
+
         // Close button
         document.getElementById('closeBtn').addEventListener('click', () => {
             try {
