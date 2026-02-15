@@ -970,7 +970,7 @@
             // ===== BUTTON FUNCTIONALITY =====
             
             // ATTACH BUTTON - Attach to Quorum API
-            injectBtn.addEventListener('click', async () => {
+            injectBtn.addEventListener('click', () => {
                 if (isAttached) {
                     addOutputLine('Already attached to Roblox', 'warning');
                     return;
@@ -978,38 +978,36 @@
                 
                 console.log('Attach button clicked');
                 addOutputLine('Checking for Roblox...', 'info');
+                injectBtn.disabled = true;
                 
                 try {
-                    // Call the C# method through the bridge
-                    const result = await window.chrome.webview.hostObjects.quorum.AttachAPI();
+                    // Call synchronously using .sync
+                    const result = window.chrome.webview.hostObjects.sync.quorum.AttachAPI();
                     console.log('AttachAPI result:', result);
                     
-                    // Check if attachment was successful
-                    // The C# method should return true on success, false or throw error on failure
-                    if (result === false || result === 'false' || result === null || result === undefined || result === 0) {
+                    if (result === true) {
+                        // Attachment successful
+                        isAttached = true;
+                        executeBtn.disabled = false;
+                        addOutputLine('Successfully attached to Roblox!', 'success');
+                        showNotification('Heaven', 'Successfully attached!', 'success');
+                        injectBtn.innerHTML = `
+                            <span class="btn-icon">
+                                <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471631880855097415/logo_enhanced.png?ex=6992467d&is=6990f4fd&hm=89a0da59b3bd1689518897022f3a38d4fa88c57c84addbb1e455ebac512dfc65&" alt="logo" style="width: 16px; height: 16px; object-fit: contain; filter: brightness(0) invert(1);">
+                            </span>
+                            Attached
+                        `;
+                        injectBtn.disabled = true;
+                    } else {
+                        // Attachment failed
+                        injectBtn.disabled = false;
                         addOutputLine('Failed to attach. Please ensure Roblox is running.', 'error');
                         showNotification('Heaven', 'Failed to attach to Roblox', 'error');
-                        return;
                     }
-                    
-                    // If we get here, attachment was successful
-                    isAttached = true;
-                    executeBtn.disabled = false;
-                    addOutputLine('Successfully attached to Roblox!', 'success');
-                    showNotification('Heaven', 'Successfully attached!', 'success');
-                    injectBtn.innerHTML = `
-                        <span class="btn-icon">
-                            <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471631880855097415/logo_enhanced.png?ex=6992467d&is=6990f4fd&hm=89a0da59b3bd1689518897022f3a38d4fa88c57c84addbb1e455ebac512dfc65&" alt="logo" style="width: 16px; height: 16px; object-fit: contain; filter: brightness(0) invert(1);">
-                        </span>
-                        Attached
-                    `;
-                    injectBtn.disabled = true;
-                    
                 } catch (error) {
                     console.error('Attach failed:', error);
-                    const errorMsg = error.message || error.toString();
-                    
-                    addOutputLine('Failed to attach: ' + errorMsg, 'error');
+                    injectBtn.disabled = false;
+                    addOutputLine('Failed to attach: ' + (error.message || error.toString()), 'error');
                     showNotification('Heaven', 'Failed to attach to Roblox', 'error');
                 }
             });
