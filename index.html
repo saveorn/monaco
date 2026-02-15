@@ -669,12 +669,8 @@
             </div>
 
             <div class="main-content">
-                <div class="tabs">
-                    <div class="tab active" data-tab-id="1">
-                        <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471633495490297878/code.png?ex=699247fe&is=6990f67e&hm=8e067976b6a99659f2b86f8dd1308ac3bf8c7f5c20f10d94406a7b3ae7760abf&" class="tab-icon" alt="code">
-                        <span class="tab-name">Tab 1</span>
-                        <span class="tab-close">×</span>
-                    </div>
+                <div class="tabs" id="tabsContainer">
+                    <!-- Tabs will be dynamically loaded here -->
                 </div>
 
                 <div class="editor-container">
@@ -856,6 +852,57 @@
                 clearOutput();
             });
 
+            // ===== TAB PERSISTENCE =====
+            const STORAGE_KEY = 'monaco_tabs';
+            const ACTIVE_TAB_KEY = 'monaco_active_tab';
+            
+            // Save all tabs to localStorage
+            function saveTabsToStorage() {
+                try {
+                    const tabsData = {
+                        tabs: [],
+                        activeTabId: currentTabId,
+                        nextTabCounter: tabCounter
+                    };
+                    
+                    // Collect all tab information
+                    document.querySelectorAll('.tab').forEach(tab => {
+                        const tabId = tab.dataset.tabId;
+                        const tabName = tab.querySelector('.tab-name').textContent;
+                        const content = tabContents[tabId] || '';
+                        
+                        tabsData.tabs.push({
+                            id: tabId,
+                            name: tabName,
+                            content: content
+                        });
+                    });
+                    
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(tabsData));
+                    console.log('Tabs saved to localStorage:', tabsData);
+                } catch (error) {
+                    console.error('Failed to save tabs:', error);
+                }
+            }
+            
+            // Load tabs from localStorage
+            function loadTabsFromStorage() {
+                try {
+                    const savedData = localStorage.getItem(STORAGE_KEY);
+                    if (!savedData) {
+                        console.log('No saved tabs found, using defaults');
+                        return null;
+                    }
+                    
+                    const tabsData = JSON.parse(savedData);
+                    console.log('Loading tabs from localStorage:', tabsData);
+                    return tabsData;
+                } catch (error) {
+                    console.error('Failed to load tabs:', error);
+                    return null;
+                }
+            }
+
             // ===== TAB CONTENT STORAGE =====
             // This object stores the content of each tab
             const tabContents = {};
@@ -877,9 +924,6 @@
                 padding: { top: 15, bottom: 15 },
                 backgroundColor: 'transparent'
             });
-
-            // Initialize the first tab's content
-            tabContents['1'] = '-- put ur script here';
 
             // Define custom theme
             monaco.editor.defineTheme('custom-dark', {
@@ -904,6 +948,7 @@
             // Function to save current tab content
             function saveCurrentTabContent() {
                 tabContents[currentTabId] = editor.getValue();
+                saveTabsToStorage();
             }
 
             // Function to load tab content
@@ -938,6 +983,7 @@
                 editor.setValue(text);
                 // Save to current tab
                 tabContents[currentTabId] = text;
+                saveTabsToStorage();
             };
 
             // Function to set attachment state (called from C#)
@@ -1047,6 +1093,7 @@
                 editor.setValue('-- put ur script here');
                 // Save the cleared content to current tab
                 tabContents[currentTabId] = '-- put ur script here';
+                saveTabsToStorage();
                 addOutputLine('Editor cleared', 'info');
             });
 
@@ -1127,6 +1174,8 @@
                             currentTabId = newTabId;
                             editor.setValue(scriptContent);
                             
+                            saveTabsToStorage();
+                            
                             addOutputLine(`File opened: ${fileName}`, 'success');
                         };
                         reader.readAsText(file);
@@ -1137,7 +1186,7 @@
             });
 
             // Tab management
-            const tabsContainer = document.querySelector('.tabs');
+            const tabsContainer = document.getElementById('tabsContainer');
             const newTabBtn = document.getElementById('newTabBtn');
 
             // Create new tab
@@ -1167,6 +1216,8 @@
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                 newTab.classList.add('active');
                 switchTab(newTabId);
+                
+                saveTabsToStorage();
             });
 
             // Add event listeners to all tabs
@@ -1206,6 +1257,7 @@
                         newSpan.textContent = newName;
                         input.replaceWith(newSpan);
                         addTabEventListeners(tab);
+                        saveTabsToStorage();
                     };
 
                     input.addEventListener('blur', finishRename);
@@ -1244,14 +1296,11 @@
                                 switchTab(remainingTabs[0].dataset.tabId);
                             }
                         }
+                        
+                        saveTabsToStorage();
                     }
                 });
             }
-
-            // Initialize existing tabs
-            document.querySelectorAll('.tab').forEach(tab => {
-                addTabEventListeners(tab);
-            });
 
             // Infinite Yield FE.lua click handler
             document.getElementById('infiniteYield').addEventListener('click', () => {
@@ -1287,14 +1336,96 @@
                 // Switch to the new tab
                 currentTabId = newTabId;
                 editor.setValue(iyScript);
+                
+                saveTabsToStorage();
             });
 
             // Auto-save content as user types
             editor.onDidChangeModelContent(() => {
                 tabContents[currentTabId] = editor.getValue();
+                saveTabsToStorage();
             });
+
+            // ===== INITIALIZE TABS ON LOAD =====
+            function initializeTabs() {
+                const savedData = loadTabsFromStorage();
+                
+                if (savedData && savedData.tabs && savedData.tabs.length > 0) {
+                    // Restore tabs from localStorage
+                    console.log('Restoring tabs from localStorage');
+                    
+                    // Update tab counter
+                    tabCounter = savedData.nextTabCounter || (savedData.tabs.length + 1);
+                    
+                    // Create tabs from saved data
+                    savedData.tabs.forEach((tabData, index) => {
+                        const newTab = document.createElement('div');
+                        newTab.className = 'tab';
+                        newTab.dataset.tabId = tabData.id;
+                        
+                        // Mark the first tab or the previously active tab as active
+                        if (tabData.id === savedData.activeTabId || (!savedData.activeTabId && index === 0)) {
+                            newTab.classList.add('active');
+                            currentTabId = tabData.id;
+                        }
+                        
+                        newTab.innerHTML = `
+                            <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471633495490297878/code.png?ex=699247fe&is=6990f67e&hm=8e067976b6a99659f2b86f8dd1308ac3bf8c7f5c20f10d94406a7b3ae7760abf&" class="tab-icon" alt="code">
+                            <span class="tab-name">${tabData.name}</span>
+                            <span class="tab-close">×</span>
+                        `;
+                        
+                        tabsContainer.appendChild(newTab);
+                        
+                        // Store content
+                        tabContents[tabData.id] = tabData.content;
+                        
+                        // Add event listeners
+                        addTabEventListeners(newTab);
+                    });
+                    
+                    // Load the active tab's content
+                    loadTabContent(currentTabId);
+                    
+                    addOutputLine('Tabs restored from previous session', 'success');
+                } else {
+                    // Create default tab
+                    console.log('Creating default tab');
+                    const defaultTab = document.createElement('div');
+                    defaultTab.className = 'tab active';
+                    defaultTab.dataset.tabId = '1';
+                    defaultTab.innerHTML = `
+                        <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471633495490297878/code.png?ex=699247fe&is=6990f67e&hm=8e067976b6a99659f2b86f8dd1308ac3bf8c7f5c20f10d94406a7b3ae7760abf&" class="tab-icon" alt="code">
+                        <span class="tab-name">Tab 1</span>
+                        <span class="tab-close">×</span>
+                    `;
+                    tabsContainer.appendChild(defaultTab);
+                    
+                    // Initialize the first tab's content
+                    tabContents['1'] = '-- put ur script here';
+                    currentTabId = '1';
+                    
+                    addTabEventListeners(defaultTab);
+                    
+                    // Save initial state
+                    saveTabsToStorage();
+                }
+            }
+            
+            // Initialize tabs when the page loads
+            initializeTabs();
+            
+            // Save tabs before page unload
+            window.addEventListener('beforeunload', () => {
+                saveCurrentTabContent();
+                saveTabsToStorage();
+            });
+            
+            // Periodic auto-save every 5 seconds
+            setInterval(() => {
+                saveCurrentTabContent();
+            }, 5000);
         });
     </script>
 </body>
 </html>
-
