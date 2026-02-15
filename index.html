@@ -132,6 +132,7 @@
             width: 40px;
             height: 40px;
             object-fit: contain;
+            filter: brightness(0) invert(1);
         }
 
         .search-box {
@@ -166,17 +167,22 @@
             right: 12px;
             top: 50%;
             transform: translateY(-50%);
-            color: #666;
             width: 16px;
             height: 16px;
-            filter: brightness(0) invert(1);
-            opacity: 0.4;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .search-icon svg {
+            width: 100%;
+            height: 100%;
         }
 
         .search-icon img {
             width: 100%;
             height: 100%;
             object-fit: contain;
+            filter: brightness(0) invert(1);
+            opacity: 0.6;
         }
 
         .section {
@@ -293,6 +299,7 @@
             height: 16px;
             object-fit: contain;
             filter: brightness(0) invert(1);
+            opacity: 0.8;
         }
 
         .new-tab-btn {
@@ -640,13 +647,13 @@
         <div class="main-wrapper">
             <div class="sidebar">
                 <div class="header">
-                    <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471631880855097415/logo_enhanced.png?ex=698fa37d&is=698e51fd&hm=bf023375b63dd63a5b311bb20653fc86e5b03ab4bfc3a48f1863691d9256aedf&" alt="Logo" class="logo">
+                    <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471631880855097415/logo_enhanced.png?ex=6992467d&is=6990f4fd&hm=89a0da59b3bd1689518897022f3a38d4fa88c57c84addbb1e455ebac512dfc65&" alt="Logo" class="logo">
                 </div>
                 
                 <div class="search-box">
                     <input type="text" placeholder="Search Explorer..">
                     <span class="search-icon">
-                        <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471633811686293515/magnifier.png?ex=698fa54a&is=698e53ca&hm=87c21a0bcd222046e28aed7431c98f13bcf86ee53e3aea80641f081b48a6d6bc&" alt="search">
+                        <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471633811686293515/magnifier.png?ex=6992484a&is=6990f6ca&hm=e2937be593b725d69b9e93f33b1ca8c4ae350320fb7294822e606b330a203298&" alt="search">
                     </span>
                 </div>
 
@@ -654,7 +661,7 @@
                     <div class="section-title">Favourites</div>
                     <div class="file-item favourite" id="infiniteYield">
                         <span class="icon">
-                            <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471634197046235381/star.png?ex=698fa5a6&is=698e5426&hm=3525c049d90a57c60689f629d5ed38a41fcfd6b65735309db14e913468ccbb62&" alt="star">
+                            <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471634197046235381/star.png?ex=699248a6&is=6990f726&hm=fe6c75545a97e436b8bfcec798856a7d09c44cc3fa23acdf72d30d8ea96fea0e&" alt="star">
                         </span>
                         <span>Infinite Yield FE.lua</span>
                     </div>
@@ -664,7 +671,7 @@
             <div class="main-content">
                 <div class="tabs">
                     <div class="tab active" data-tab-id="1">
-                        <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471633495490297878/code.png?ex=698fa4fe&is=698e537e&hm=165cb6b526e97b95d186d8578f30a21a1f8bdd005454a2a90c9c45ffcbddc87a&" class="tab-icon" alt="code">
+                        <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471633495490297878/code.png?ex=699247fe&is=6990f67e&hm=8e067976b6a99659f2b86f8dd1308ac3bf8c7f5c20f10d94406a7b3ae7760abf&" class="tab-icon" alt="code">
                         <span class="tab-name">Tab 1</span>
                         <span class="tab-close">×</span>
                     </div>
@@ -677,7 +684,7 @@
                 <div class="footer">
                     <button class="inject" id="injectBtn">
                         <span class="btn-icon">
-                            <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471631880855097415/logo_enhanced.png?ex=698fa37d&is=698e51fd&hm=bf023375b63dd63a5b311bb20653fc86e5b03ab4bfc3a48f1863691d9256aedf&" alt="logo" style="width: 16px; height: 16px; object-fit: contain;">
+                            <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471631880855097415/logo_enhanced.png?ex=6992467d&is=6990f4fd&hm=89a0da59b3bd1689518897022f3a38d4fa88c57c84addbb1e455ebac512dfc65&" alt="logo" style="width: 16px; height: 16px; object-fit: contain; filter: brightness(0) invert(1);">
                         </span>
                         Attach
                     </button>
@@ -741,10 +748,17 @@
         // Close button
         document.getElementById('closeBtn').addEventListener('click', () => {
             try {
-                // Call the C# method to close the window
-                window.chrome.webview.hostObjects.quorum.Close();
+                // Try to call the C# method to close the window
+                if (window.chrome && window.chrome.webview && window.chrome.webview.hostObjects && window.chrome.webview.hostObjects.quorum) {
+                    window.chrome.webview.hostObjects.quorum.Close();
+                } else {
+                    // Fallback for regular browser
+                    window.close();
+                }
             } catch (error) {
                 console.error('Close failed:', error);
+                // Try regular window.close() as fallback
+                window.close();
             }
         });
 
@@ -937,7 +951,7 @@
                     injectBtn.textContent = '';
                     injectBtn.innerHTML = `
                         <span class="btn-icon">
-                            <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471631880855097415/logo_enhanced.png?ex=698fa37d&is=698e51fd&hm=bf023375b63dd63a5b311bb20653fc86e5b03ab4bfc3a48f1863691d9256aedf&" alt="logo" style="width: 16px; height: 16px; object-fit: contain;">
+                            <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471631880855097415/logo_enhanced.png?ex=6992467d&is=6990f4fd&hm=89a0da59b3bd1689518897022f3a38d4fa88c57c84addbb1e455ebac512dfc65&" alt="logo" style="width: 16px; height: 16px; object-fit: contain; filter: brightness(0) invert(1);">
                         </span>
                         Attached
                     `;
@@ -946,7 +960,7 @@
                     injectBtn.textContent = '';
                     injectBtn.innerHTML = `
                         <span class="btn-icon">
-                            <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471631880855097415/logo_enhanced.png?ex=698fa37d&is=698e51fd&hm=bf023375b63dd63a5b311bb20653fc86e5b03ab4bfc3a48f1863691d9256aedf&" alt="logo" style="width: 16px; height: 16px; object-fit: contain;">
+                            <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471631880855097415/logo_enhanced.png?ex=6992467d&is=6990f4fd&hm=89a0da59b3bd1689518897022f3a38d4fa88c57c84addbb1e455ebac512dfc65&" alt="logo" style="width: 16px; height: 16px; object-fit: contain; filter: brightness(0) invert(1);">
                         </span>
                         Attach
                     `;
@@ -985,7 +999,7 @@
                     showNotification('Heaven', 'Successfully attached!', 'success');
                     injectBtn.innerHTML = `
                         <span class="btn-icon">
-                            <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471631880855097415/logo_enhanced.png?ex=698fa37d&is=698e51fd&hm=bf023375b63dd63a5b311bb20653fc86e5b03ab4bfc3a48f1863691d9256aedf&" alt="logo" style="width: 16px; height: 16px; object-fit: contain;">
+                            <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471631880855097415/logo_enhanced.png?ex=6992467d&is=6990f4fd&hm=89a0da59b3bd1689518897022f3a38d4fa88c57c84addbb1e455ebac512dfc65&" alt="logo" style="width: 16px; height: 16px; object-fit: contain; filter: brightness(0) invert(1);">
                         </span>
                         Attached
                     `;
@@ -1093,7 +1107,7 @@
                             const tabName = fileName.replace(/\.[^/.]+$/, "");
                             
                             newTab.innerHTML = `
-                                <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471633495490297878/code.png?ex=698fa4fe&is=698e537e&hm=165cb6b526e97b95d186d8578f30a21a1f8bdd005454a2a90c9c45ffcbddc87a&" class="tab-icon" alt="code">
+                                <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471633495490297878/code.png?ex=699247fe&is=6990f67e&hm=8e067976b6a99659f2b86f8dd1308ac3bf8c7f5c20f10d94406a7b3ae7760abf&" class="tab-icon" alt="code">
                                 <span class="tab-name">${tabName}</span>
                                 <span class="tab-close">×</span>
                             `;
@@ -1138,7 +1152,7 @@
                 newTab.className = 'tab';
                 newTab.dataset.tabId = newTabId;
                 newTab.innerHTML = `
-                    <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471633495490297878/code.png?ex=698fa4fe&is=698e537e&hm=165cb6b526e97b95d186d8578f30a21a1f8bdd005454a2a90c9c45ffcbddc87a&" class="tab-icon" alt="code">
+                    <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471633495490297878/code.png?ex=699247fe&is=6990f67e&hm=8e067976b6a99659f2b86f8dd1308ac3bf8c7f5c20f10d94406a7b3ae7760abf&" class="tab-icon" alt="code">
                     <span class="tab-name">Tab ${tabCounter}</span>
                     <span class="tab-close">×</span>
                 `;
@@ -1253,7 +1267,7 @@
                 newTab.className = 'tab active';
                 newTab.dataset.tabId = newTabId;
                 newTab.innerHTML = `
-                    <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471633495490297878/code.png?ex=698fa4fe&is=698e537e&hm=165cb6b526e97b95d186d8578f30a21a1f8bdd005454a2a90c9c45ffcbddc87a&" class="tab-icon" alt="code">
+                    <img src="https://cdn.discordapp.com/attachments/1470594583644864512/1471633495490297878/code.png?ex=699247fe&is=6990f67e&hm=8e067976b6a99659f2b86f8dd1308ac3bf8c7f5c20f10d94406a7b3ae7760abf&" class="tab-icon" alt="code">
                     <span class="tab-name">Infinite Yield FE</span>
                     <span class="tab-close">×</span>
                 `;
